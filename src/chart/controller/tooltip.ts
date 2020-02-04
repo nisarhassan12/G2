@@ -268,9 +268,13 @@ export default class Tooltip extends Controller<TooltipOption> {
       if (geometry.visible && geometry.tooltipOption !== false) {
         // geometry 可见同时未关闭 tooltip
         const dataArray = geometry.dataArray;
+        const geometryType = geometry.type;
 
-        if (['area', 'line', 'path', 'edge'].includes(geometry.type) || shared !== false) {
-          // 如果是 'area', 'line', 'path', 'edge'，始终通过数据查找方法查找 tooltip
+        if ([ 'point', 'edge', 'polygon' ].includes(geometryType)) {
+          // 始终通过图形拾取
+          items = this.getTooltipItemsByHitShape(geometry, point, items, title);
+        } else if (['area', 'line', 'path', 'heatmap' ].includes(geometry.type) || shared !== false) {
+          // 如果是 'area', 'line', 'path'，始终通过数据查找方法查找 tooltip
           each(dataArray, (data: MappingDatum[]) => {
             const record = findDataByPoint(point, data, geometry);
             if (record) {
@@ -279,19 +283,7 @@ export default class Tooltip extends Controller<TooltipOption> {
             }
           });
         } else {
-          const container = geometry.container;
-          const shape = container.getShape(point.x, point.y);
-          if (shape && shape.get('visible') && shape.get('origin')) {
-            const mappingData = shape.get('origin').mappingData;
-            if (isArray(mappingData)) {
-              const record = findDataByPoint(point, mappingData, geometry);
-              if (record) {
-                items = items.concat(getTooltipItems(record, geometry, title));
-              }
-            } else {
-              items = items.concat(getTooltipItems(mappingData, geometry, title));
-            }
-          }
+          items = this.getTooltipItemsByHitShape(geometry, point, items, title);
         }
       }
     });
@@ -596,5 +588,16 @@ export default class Tooltip extends Controller<TooltipOption> {
       this.tooltipCrosshairsGroup = tooltipCrosshairsGroup;
     }
     return tooltipCrosshairsGroup;
+  }
+
+  private getTooltipItemsByHitShape(geometry, point, items, title) {
+    const container = geometry.container;
+    const shape = container.getShape(point.x, point.y);
+    if (shape && shape.get('visible') && shape.get('origin')) {
+      const mappingData = shape.get('origin').mappingData;
+      items = items.concat(getTooltipItems(mappingData, geometry, title));
+    }
+
+    return items;
   }
 }

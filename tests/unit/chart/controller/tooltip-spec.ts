@@ -220,7 +220,7 @@ describe('Tooltip', () => {
     const point1 = chart.getXY({ year: '1998', value: 9 });
     const point2 = chart.getXY({ year: '1999', value: 13 });
     const point = {
-      x: (point2.x - point1.x) * 0.6 + point1.x,
+      x: (point2.x - point1.x) * 0.45 + point1.x,
       y: (point2.y - point1.y) * 0.4 + point1.y,
     };
     const tooltipItems = chart.getTooltipItems(point);
